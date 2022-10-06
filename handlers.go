@@ -17,8 +17,9 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		link.ShortLink = r.Host + "/" + shortLink
 	} else {
 		shortLink := Generate()
-		link.ShortLink = r.Host + "/" + shortLink
+		link.ShortLink = shortLink
 		log.Println("id =", SetLinkToDB(link))
+		link.ShortLink = r.Host + "/" + shortLink
 	}
 
 	json.NewEncoder(w).Encode(link)

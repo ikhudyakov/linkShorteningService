@@ -17,15 +17,11 @@ func init() {
 }
 
 func main() {
-	// db := GetDB()
-	// db.Ping()
-
 	r := mux.NewRouter()
 
 	r.HandleFunc("/", CreateShortLink).Methods("POST")
 	r.HandleFunc("/{shortlink}", GetLink).Methods("GET")
 	log.Fatal(http.ListenAndServe(":8001", r))
-
 }
 
 func getEnv(text string) string {

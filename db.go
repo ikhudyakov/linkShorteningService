@@ -62,7 +62,6 @@ func SetLinkToDB(link Link) int64 {
 		"INSERT INTO links (link, shortlink) VALUES ($1, $2) RETURNING id",
 		link.FullLink,
 		link.ShortLink).Scan(&lastID)
-	log.Println(link)
 
 	CheckError(err)
 	return lastID
@@ -71,7 +70,6 @@ func SetLinkToDB(link Link) int64 {
 func GetLinkFromDB(shortLink string) string {
 	GetDB()
 	var link string
-	defer db.Close()
 	rows, err := db.Query("select link from links where shortlink = $1", shortLink)
 	CheckError(err)
 	defer rows.Close()
