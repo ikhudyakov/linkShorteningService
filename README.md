@@ -8,6 +8,7 @@ Golang, PostgreSQL
 ```sh
 {
     "link" : "https://vk.com"
+    "domain" : 1
 }
 ```
 
