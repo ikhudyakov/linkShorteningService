@@ -5,9 +5,7 @@ import (
 	"linkShorteningService/internal/handlers"
 	u "linkShorteningService/internal/utility"
 	"log"
-	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -25,9 +23,5 @@ func main() {
 		return
 	}
 
-	r := mux.NewRouter()
-
-	r.HandleFunc("/", handlers.CreateShortLink).Methods("POST")
-	r.HandleFunc("/{shortlink}", handlers.GetLink).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8001", r))
+	handlers.HandlersInit()
 }

@@ -11,11 +11,14 @@ import (
 )
 
 var db *sql.DB
-var err error
 
 func startConnection() error {
+	var err error
 	host := u.GetEnv("HOST")
-	port, _ := strconv.Atoi(u.GetEnv("PORT"))
+	port, err := strconv.Atoi(u.GetEnv("POSTGRESQLPORT"))
+	if err != nil {
+		return err
+	}
 	user := u.GetEnv("USER")
 	password := u.GetEnv("PASSWORD")
 	dbname := u.GetEnv("DBNAME")
@@ -43,53 +46,105 @@ func Connect() error {
 	return err
 }
 
-func GetShortLink(link string, domainId int) (string, string) {
-	rows, err := db.Query("select shortlink, d.domain from links l join domains d on l.domain=d.id where l.link = $1 and l.domain = $2", link, domainId)
-	u.CheckError(err)
-	defer rows.Close()
+func GetShortLink(link string, domainId int) (string, string, error) {
 	var shortLink string
 	var domain string
+	var err error
+	var rows *sql.Rows
+
+	rows, err = db.Query("select shortlink, d.domain from links l join domains d on l.domain=d.id where l.link = $1 and l.domain = $2", link, domainId)
+	if err != nil {
+		u.CheckError(err)
+		return shortLink, domain, err
+	}
+	defer rows.Close()
 
 	for rows.Next() {
 		err := rows.Scan(&shortLink, &domain)
-		u.CheckError(err)
+		if err != nil {
+			u.CheckError(err)
+			return shortLink, domain, err
+		}
 	}
 
-	return shortLink, domain
+	return shortLink, domain, err
 }
 
-func SetLink(link repo.Link) (int64, string) {
+func CheckShortLink(shortLlink string) (bool, error) {
+	var err error
+	var rows *sql.Rows
+	var shortLlinkFromDB string
+
+	rows, err = db.Query("select shortlink from links")
+	if err != nil {
+		u.CheckError(err)
+		return false, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&shortLlinkFromDB)
+		if err != nil {
+			u.CheckError(err)
+			return false, err
+		}
+		if shortLlink == shortLlinkFromDB {
+			return true, err
+		}
+	}
+
+	return false, err
+}
+
+func SetLink(link repo.Link) (int64, string, error) {
 	var lastID int64
 	var domain string
+	var err error
+	var rows *sql.Rows
+
 	err = db.QueryRow(
 		"INSERT INTO links (link, shortlink, domain) VALUES ($1, $2, $3) RETURNING id",
 		link.FullLink,
 		link.ShortLink,
 		link.Domain).Scan(&lastID)
-	u.CheckError(err)
+	if err != nil {
+		return lastID, domain, err
+	}
 
-	rows, err := db.Query("SELECT d.domain FROM domains d JOIN links l ON d.id=l.domain WHERE l.id=$1", lastID)
-	u.CheckError(err)
+	rows, err = db.Query("SELECT d.domain FROM domains d JOIN links l ON d.id=l.domain WHERE l.id=$1", lastID)
+	if err != nil {
+		return lastID, domain, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err := rows.Scan(&domain)
-		u.CheckError(err)
+		if err != nil {
+			return lastID, domain, err
+		}
 	}
 
-	u.CheckError(err)
-	return lastID, domain
+	return lastID, domain, err
 }
 
-func GetLink(shortLink string) string {
+func GetFullLink(shortLink string) (string, error) {
 	var link string
-	rows, err := db.Query("select link from links where shortlink = $1", shortLink)
-	u.CheckError(err)
+	var err error
+	var rows *sql.Rows
+
+	rows, err = db.Query("select link from links where shortlink = $1", shortLink)
+	if err != nil {
+		u.CheckError(err)
+		return link, err
+	}
 	defer rows.Close()
 
 	for rows.Next() {
 		err := rows.Scan(&link)
-		u.CheckError(err)
+		if err != nil {
+			u.CheckError(err)
+			return link, err
+		}
 	}
-	return link
+	return link, err
 }

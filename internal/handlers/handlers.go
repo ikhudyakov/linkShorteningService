@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	db "linkShorteningService/internal/database"
 	"linkShorteningService/internal/repo"
 	u "linkShorteningService/internal/utility"
@@ -21,23 +22,57 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if shortLink, domain := db.GetShortLink(link.FullLink, link.Domain); shortLink != "" {
-		link.ShortLink = domain + ":8001/" + shortLink //	исправить
+	shortLink, domain, err := db.GetShortLink(link.FullLink, link.Domain)
+	if err != nil {
+		u.CheckError(err)
+		return
+	}
+
+	if shortLink != "" {
+		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, u.GetEnv("PORT"), shortLink)
 	} else {
-		shortLink := link.Generate()
+		for {
+			shortLink = link.Generate()
+			check, err := db.CheckShortLink(shortLink)
+			if err != nil {
+				u.CheckError(err)
+				return
+			}
+			if !check {
+				break
+			}
+			log.Println(shortLink)
+		}
+
 		link.ShortLink = shortLink
-		lastId, lastDomain := db.SetLink(link)
+		lastId, lastDomain, err := db.SetLink(link)
+		if err != nil {
+			u.CheckError(err)
+			return
+		}
 		log.Println("set db with id =", lastId)
-		link.ShortLink = lastDomain + ":8001/" + shortLink //	исправить
+		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, u.GetEnv("PORT"), shortLink)
 	}
 
 	json.NewEncoder(w).Encode(link)
 }
 
-func GetLink(w http.ResponseWriter, r *http.Request) {
+func GetFullLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	shortLink := params["shortlink"]
-	link := db.GetLink(shortLink)
+	link, err := db.GetFullLink(shortLink)
+	if err != nil {
+		u.CheckError(err)
+		return
+	}
 	http.Redirect(w, r, link, http.StatusSeeOther)
+}
+
+func HandlersInit() {
+	r := mux.NewRouter()
+	r.HandleFunc("/", CreateShortLink).Methods("POST")
+	r.HandleFunc("/{shortlink}", GetFullLink).Methods("GET")
+
+	log.Fatal(http.ListenAndServe(u.GetEnv("PORT"), r))
 }
