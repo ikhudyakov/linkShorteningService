@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"linkShorteningService/internal/repo"
 	u "linkShorteningService/internal/utility"
-	"strconv"
 
 	_ "github.com/lib/pq"
 )
@@ -14,14 +13,17 @@ var db *sql.DB
 
 func startConnection() error {
 	var err error
-	host := u.GetEnv("HOST")
-	port, err := strconv.Atoi(u.GetEnv("POSTGRESQLPORT"))
+
+	conf, err := repo.GetConfig()
 	if err != nil {
 		return err
 	}
-	user := u.GetEnv("USER")
-	password := u.GetEnv("PASSWORD")
-	dbname := u.GetEnv("DBNAME")
+
+	host := conf.Host
+	port := conf.Postgresqlport
+	user := conf.User
+	password := conf.Password
+	dbname := conf.DBname
 
 	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 

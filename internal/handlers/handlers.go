@@ -39,7 +39,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shortLink != "" {
-		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, u.GetEnv("PORT"), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, repo.GetPort(), shortLink)
 	} else {
 		for {
 			shortLink = link.Generate()
@@ -63,7 +63,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		log.Println("set db with id =", lastId)
-		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, u.GetEnv("PORT"), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, repo.GetPort(), shortLink)
 	}
 
 	json.NewEncoder(w).Encode(link)
@@ -87,5 +87,5 @@ func HandlersInit() {
 	r.HandleFunc("/", CreateShortLink).Methods("POST")
 	r.HandleFunc("/{shortlink}", GetFullLink).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(u.GetEnv("PORT"), r))
+	log.Fatal(http.ListenAndServe(repo.GetPort(), r))
 }
