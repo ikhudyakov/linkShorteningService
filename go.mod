@@ -7,4 +7,6 @@ require (
 	github.com/lib/pq v1.10.7
 )
 
-require github.com/BurntSushi/toml v1.2.0 
+require github.com/BurntSushi/toml v1.2.0
+
+require golang.org/x/time v0.0.0-20220922220347-f3bd1da661af

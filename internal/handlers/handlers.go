@@ -87,5 +87,5 @@ func HandlersInit() {
 	r.HandleFunc("/", CreateShortLink).Methods("POST")
 	r.HandleFunc("/{shortlink}", GetFullLink).Methods("GET")
 
-	log.Fatal(http.ListenAndServe(repo.GetPort(), r))
+	log.Fatal(http.ListenAndServe(repo.GetPort(), limit(r)))
 }
