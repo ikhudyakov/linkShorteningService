@@ -8,6 +8,7 @@ import (
 	u "linkShorteningService/internal/utility"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/gorilla/mux"
 )
@@ -19,12 +20,21 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&link)
 	if err != nil {
 		u.CheckError(err)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	_, err = url.ParseRequestURI(link.FullLink)
+	if err != nil {
+		u.CheckError(err)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
 	shortLink, domain, err := db.GetShortLink(link.FullLink, link.Domain)
 	if err != nil {
 		u.CheckError(err)
+		w.Write([]byte(err.Error()))
 		return
 	}
 
@@ -36,6 +46,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 			check, err := db.CheckShortLink(shortLink)
 			if err != nil {
 				u.CheckError(err)
+				w.Write([]byte(err.Error()))
 				return
 			}
 			if !check {
@@ -48,6 +59,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		lastId, lastDomain, err := db.SetLink(link)
 		if err != nil {
 			u.CheckError(err)
+			w.Write([]byte(err.Error()))
 			return
 		}
 		log.Println("set db with id =", lastId)
@@ -64,6 +76,7 @@ func GetFullLink(w http.ResponseWriter, r *http.Request) {
 	link, err := db.GetFullLink(shortLink)
 	if err != nil {
 		u.CheckError(err)
+		w.Write([]byte(err.Error()))
 		return
 	}
 	http.Redirect(w, r, link, http.StatusSeeOther)

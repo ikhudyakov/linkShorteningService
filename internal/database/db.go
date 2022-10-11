@@ -46,6 +46,7 @@ func Connect() error {
 	return err
 }
 
+// Получение короткой ссылки из базы
 func GetShortLink(link string, domainId int) (string, string, error) {
 	var shortLink string
 	var domain string
@@ -70,6 +71,7 @@ func GetShortLink(link string, domainId int) (string, string, error) {
 	return shortLink, domain, err
 }
 
+// проверка, существует ли уже такая же ссылка в базе
 func CheckShortLink(shortLlink string) (bool, error) {
 	var err error
 	var rows *sql.Rows
@@ -96,6 +98,7 @@ func CheckShortLink(shortLlink string) (bool, error) {
 	return false, err
 }
 
+// Запись новой ссылки в базу
 func SetLink(link repo.Link) (int64, string, error) {
 	var lastID int64
 	var domain string
@@ -127,6 +130,7 @@ func SetLink(link repo.Link) (int64, string, error) {
 	return lastID, domain, err
 }
 
+// Получение полной ссылки из базы
 func GetFullLink(shortLink string) (string, error) {
 	var link string
 	var err error
