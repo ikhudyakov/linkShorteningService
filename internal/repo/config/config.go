@@ -1,4 +1,4 @@
-package repo
+package config
 
 import (
 	"github.com/BurntSushi/toml"
@@ -13,6 +13,8 @@ type Config struct {
 	Password       string
 	DBname         string
 	Port           string
+	LenShortLink   int
+	ConnectionType string
 }
 
 func GetConfig() (*Config, error) {
@@ -25,4 +27,8 @@ func GetConfig() (*Config, error) {
 
 func GetPort() string {
 	return conf.Port
+}
+
+func GetLenShortLink() int {
+	return conf.LenShortLink
 }

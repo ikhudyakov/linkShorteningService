@@ -1,11 +1,10 @@
-package handlers
+package server
 
 import (
 	"encoding/json"
 	"fmt"
-	db "linkShorteningService/internal/database"
 	"linkShorteningService/internal/repo"
-	u "linkShorteningService/internal/utility"
+	c "linkShorteningService/internal/repo/config"
 	"log"
 	"net/http"
 	"net/url"
@@ -17,35 +16,34 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var link repo.Link = *repo.GetLink()
-	err := json.NewDecoder(r.Body).Decode(&link)
-	if err != nil {
-		u.CheckError(err)
+
+	if err := json.NewDecoder(r.Body).Decode(&link); err != nil {
+		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	_, err = url.ParseRequestURI(link.FullLink)
-	if err != nil {
-		u.CheckError(err)
+	if _, err := url.ParseRequestURI(link.FullLink); err != nil {
+		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	shortLink, domain, err := db.GetShortLink(link.FullLink, link.Domain)
+	shortLink, domain, err := repo.GetShortLink(link.FullLink, link.Domain)
 	if err != nil {
-		u.CheckError(err)
+		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))
 		return
 	}
 
 	if shortLink != "" {
-		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, repo.GetPort(), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, c.GetPort(), shortLink)
 	} else {
 		for {
 			shortLink = link.Generate()
-			check, err := db.CheckShortLink(shortLink)
+			check, err := repo.CheckShortLink(shortLink)
 			if err != nil {
-				u.CheckError(err)
+				log.Println((err.Error()))
 				w.Write([]byte(err.Error()))
 				return
 			}
@@ -56,14 +54,14 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		}
 
 		link.ShortLink = shortLink
-		lastId, lastDomain, err := db.SetLink(link)
+		lastId, lastDomain, err := repo.SetLink(link)
 		if err != nil {
-			u.CheckError(err)
+			log.Println((err.Error()))
 			w.Write([]byte(err.Error()))
 			return
 		}
 		log.Println("set db with id =", lastId)
-		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, repo.GetPort(), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, c.GetPort(), shortLink)
 	}
 
 	json.NewEncoder(w).Encode(link)
@@ -73,19 +71,11 @@ func GetFullLink(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	shortLink := params["shortlink"]
-	link, err := db.GetFullLink(shortLink)
+	link, err := repo.GetFullLink(shortLink)
 	if err != nil {
-		u.CheckError(err)
+		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))
 		return
 	}
 	http.Redirect(w, r, link, http.StatusSeeOther)
-}
-
-func HandlersInit() {
-	r := mux.NewRouter()
-	r.HandleFunc("/", CreateShortLink).Methods("POST")
-	r.HandleFunc("/{shortlink}", GetFullLink).Methods("GET")
-
-	log.Fatal(http.ListenAndServe(repo.GetPort(), limit(r)))
 }

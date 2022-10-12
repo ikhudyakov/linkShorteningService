@@ -1,6 +1,7 @@
 package repo
 
 import (
+	c "linkShorteningService/internal/repo/config"
 	"math/rand"
 	"time"
 )
@@ -14,7 +15,7 @@ type Link struct {
 
 func GetLink() *Link {
 	return &Link{
-		lenShortLink: 10,
+		lenShortLink: c.GetLenShortLink(),
 	}
 }
 

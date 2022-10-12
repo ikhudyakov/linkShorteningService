@@ -2,18 +2,17 @@ package main
 
 import (
 	"linkShorteningService/internal/database"
-	"linkShorteningService/internal/handlers"
-	u "linkShorteningService/internal/utility"
+	"linkShorteningService/internal/server"
+	"log"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	err := database.Connect()
-	if err != nil {
-		u.CheckError(err)
+	if err := database.Connect(); err != nil {
+		log.Println((err.Error()))
 		return
 	}
 
-	handlers.HandlersInit()
+	server.ServerInit()
 }
