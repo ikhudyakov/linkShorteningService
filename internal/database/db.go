@@ -9,15 +9,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func Connect() (*sql.DB, error) {
+func Connect(conf *c.Config) (*sql.DB, error) {
 	var err error
 	var conn string
 	var db *sql.DB
-
-	conf, err := c.GetConfig()
-	if err != nil {
-		return nil, err
-	}
 
 	switch conf.ConnectionType {
 	case "postgres":

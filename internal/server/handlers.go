@@ -12,14 +12,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager) {
+func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager, conf *c.Config) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var link repo.Link = *repo.GetLink()
-	conf, err := c.GetConfig()
-	if err != nil {
-		log.Println(err)
-	}
 
 	if err := json.NewDecoder(r.Body).Decode(&link); err != nil {
 		log.Println((err.Error()))

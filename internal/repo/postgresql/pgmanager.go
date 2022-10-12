@@ -17,9 +17,7 @@ func (m *PGmanager) GetShortLink(link string, domainId int) (string, string, err
 	var err error
 	var rows *sql.Rows
 
-	db := m.DB
-
-	rows, err = db.Query("select shortlink, d.domain from links l join domains d on l.domain=d.id where l.link = $1 and l.domain = $2", link, domainId)
+	rows, err = m.DB.Query("select shortlink, d.domain from links l join domains d on l.domain=d.id where l.link = $1 and l.domain = $2", link, domainId)
 	if err != nil {
 		log.Println((err.Error()))
 		return shortLink, domain, err
@@ -43,9 +41,7 @@ func (m *PGmanager) CheckShortLink(shortLlink string) (bool, error) {
 	var rows *sql.Rows
 	var shortLlinkFromDB string
 
-	db := m.DB
-
-	rows, err = db.Query("select shortlink from links")
+	rows, err = m.DB.Query("select shortlink from links")
 	if err != nil {
 		log.Println((err.Error()))
 		return false, err
@@ -73,9 +69,7 @@ func (m *PGmanager) SetLink(link repo.Link) (int64, string, error) {
 	var err error
 	var rows *sql.Rows
 
-	db := m.DB
-
-	err = db.QueryRow(
+	err = m.DB.QueryRow(
 		"INSERT INTO links (link, shortlink, domain) VALUES ($1, $2, $3) RETURNING id",
 		link.FullLink,
 		link.ShortLink,
@@ -84,7 +78,7 @@ func (m *PGmanager) SetLink(link repo.Link) (int64, string, error) {
 		return lastID, domain, err
 	}
 
-	rows, err = db.Query("SELECT d.domain FROM domains d JOIN links l ON d.id=l.domain WHERE l.id=$1", lastID)
+	rows, err = m.DB.Query("SELECT d.domain FROM domains d JOIN links l ON d.id=l.domain WHERE l.id=$1", lastID)
 	if err != nil {
 		return lastID, domain, err
 	}
@@ -106,9 +100,7 @@ func (m *PGmanager) GetFullLink(shortLink string) (string, error) {
 	var err error
 	var rows *sql.Rows
 
-	db := m.DB
-
-	rows, err = db.Query("select link from links where shortlink = $1", shortLink)
+	rows, err = m.DB.Query("select link from links where shortlink = $1", shortLink)
 	if err != nil {
 		log.Println((err.Error()))
 		return link, err

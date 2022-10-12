@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	c "linkShorteningService/internal/config"
 	"linkShorteningService/internal/database"
 	"linkShorteningService/internal/repo"
@@ -15,6 +16,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 )
 
@@ -22,8 +26,19 @@ func main() {
 	var dbmanager repo.DBmanager
 	var db *sql.DB
 	var err error
+	var conf *c.Config
 
-	if db, err = database.Connect(); err != nil {
+	conf, err = c.GetConfig()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	if err = migration(conf); err != nil {
+		log.Println(err)
+	}
+
+	if db, err = database.Connect(conf); err != nil {
 		log.Println((err.Error()))
 		return
 	}
@@ -32,12 +47,7 @@ func main() {
 		DB: db,
 	}
 
-	conf, err := c.GetConfig()
-	if err != nil {
-		log.Println(err)
-	}
-
-	r := server.HandlersInit(dbmanager)
+	r := server.HandlersInit(dbmanager, conf)
 	server := &http.Server{
 		Addr:    conf.Port,
 		Handler: server.Limit(r),
@@ -65,4 +75,20 @@ func main() {
 		log.Fatalf("Server Shutdown Failed:%+v", err)
 	}
 	log.Print("Server Exited Properly")
+}
+
+func migration(conf *c.Config) error {
+	m, err := migrate.New(
+		"file://../migrations",
+		fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable", conf.ConnectionType, conf.User, conf.Password, conf.Host, conf.Postgresqlport, conf.DBname))
+	if err != nil {
+		return err
+	}
+	if err := m.Down(); err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil {
+		return err
+	}
+	return err
 }
