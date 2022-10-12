@@ -3,8 +3,8 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	c "linkShorteningService/internal/config"
 	"linkShorteningService/internal/repo"
-	c "linkShorteningService/internal/repo/config"
 	"log"
 	"net/http"
 	"net/url"
@@ -12,10 +12,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateShortLink(w http.ResponseWriter, r *http.Request) {
+func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var link repo.Link = *repo.GetLink()
+	conf, err := c.GetConfig()
+	if err != nil {
+		log.Println(err)
+	}
 
 	if err := json.NewDecoder(r.Body).Decode(&link); err != nil {
 		log.Println((err.Error()))
@@ -29,7 +33,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortLink, domain, err := repo.GetShortLink(link.FullLink, link.Domain)
+	shortLink, domain, err := db.GetShortLink(link.FullLink, link.Domain)
 	if err != nil {
 		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))
@@ -37,11 +41,11 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if shortLink != "" {
-		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, c.GetPort(), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", domain, conf.Port, shortLink)
 	} else {
 		for {
 			shortLink = link.Generate()
-			check, err := repo.CheckShortLink(shortLink)
+			check, err := db.CheckShortLink(shortLink)
 			if err != nil {
 				log.Println((err.Error()))
 				w.Write([]byte(err.Error()))
@@ -54,24 +58,24 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request) {
 		}
 
 		link.ShortLink = shortLink
-		lastId, lastDomain, err := repo.SetLink(link)
+		lastId, lastDomain, err := db.SetLink(link)
 		if err != nil {
 			log.Println((err.Error()))
 			w.Write([]byte(err.Error()))
 			return
 		}
 		log.Println("set db with id =", lastId)
-		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, c.GetPort(), shortLink)
+		link.ShortLink = fmt.Sprintf("%s%s/%s", lastDomain, conf.Port, shortLink)
 	}
 
 	json.NewEncoder(w).Encode(link)
 }
 
-func GetFullLink(w http.ResponseWriter, r *http.Request) {
+func GetFullLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	shortLink := params["shortlink"]
-	link, err := repo.GetFullLink(shortLink)
+	link, err := db.GetFullLink(shortLink)
 	if err != nil {
 		log.Println((err.Error()))
 		w.Write([]byte(err.Error()))

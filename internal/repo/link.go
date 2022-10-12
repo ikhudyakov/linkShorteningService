@@ -1,7 +1,8 @@
 package repo
 
 import (
-	c "linkShorteningService/internal/repo/config"
+	c "linkShorteningService/internal/config"
+	"log"
 	"math/rand"
 	"time"
 )
@@ -14,8 +15,13 @@ type Link struct {
 }
 
 func GetLink() *Link {
+	conf, err := c.GetConfig()
+	if err != nil {
+		log.Println(err)
+	}
+
 	return &Link{
-		lenShortLink: c.GetLenShortLink(),
+		lenShortLink: conf.LenShortLink,
 	}
 }
 

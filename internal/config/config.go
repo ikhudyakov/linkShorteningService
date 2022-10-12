@@ -4,8 +4,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-var conf *Config
-
 type Config struct {
 	Host           string
 	Postgresqlport int
@@ -19,16 +17,9 @@ type Config struct {
 
 func GetConfig() (*Config, error) {
 	var err error
-	if conf == nil {
-		_, err = toml.DecodeFile("../configs/config.toml", &conf)
-	}
+	var conf *Config
+
+	_, err = toml.DecodeFile("../configs/config.toml", &conf)
+
 	return conf, err
-}
-
-func GetPort() string {
-	return conf.Port
-}
-
-func GetLenShortLink() int {
-	return conf.LenShortLink
 }

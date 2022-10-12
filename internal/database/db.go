@@ -3,50 +3,40 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	c "linkShorteningService/internal/repo/config"
+	c "linkShorteningService/internal/config"
 
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var db *sql.DB
-
-func Connect() error {
+func Connect() (*sql.DB, error) {
 	var err error
 	var conn string
+	var db *sql.DB
 
 	conf, err := c.GetConfig()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	host := conf.Host
-	port := conf.Postgresqlport
-	user := conf.User
-	password := conf.Password
-	dbname := conf.DBname
-	connType := conf.ConnectionType
-
-	switch connType {
+	switch conf.ConnectionType {
 	case "postgres":
-		conn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
-		if db, err = sql.Open(connType, conn); err != nil {
-			return err
+		conn = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.Host, conf.Postgresqlport, conf.User, conf.Password, conf.DBname)
+		if db, err = sql.Open(conf.ConnectionType, conn); err != nil {
+			return nil, err
 		}
 	case "sqlite3":
-		conn = dbname
-		if db, err = sql.Open(connType, conn); err != nil {
-			return err
+		conn = conf.DBname
+		if db, err = sql.Open(conf.ConnectionType, conn); err != nil {
+			return nil, err
 		}
+	default:
+		return nil, fmt.Errorf("invalid base type")
 	}
 
 	if err = db.Ping(); err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
-}
-
-func GetDB() *sql.DB {
-	return db
+	return db, nil
 }
