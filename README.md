@@ -32,3 +32,9 @@ _Golang, PostgreSQL_
     "shortlink": "localhost:8001/WI7U0i9e99"
 }
 ```
+где ```link``` - ссылка, которую хотим сократить, 
+```shortlink``` - короткая ссылка
+
+Перехдоим по полученной ссылке ```localhost:8001/WI7U0i9e99```, открывается ```https://vk.com```
+
+
