@@ -2,18 +2,24 @@ version: '3.8'
 
 services:
   db:
-    restart: always
+    container_name: db
     image: postgres:latest
-    ports:
-      - 5432:5432
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-
-  go:
-    build: ./
-    command: ./linkshorteningservice
+      POSTGRES_DB: postgres
     ports:
-      - 8001:8001
+      - "5432:5432"
+    volumes:
+       - dbdata:/var/lib/postgresql/data
+  go:
+    container_name: go
+    ports:
+      - "8001:8001"
+    build:
+      context: .
     depends_on:
-      - db
+      - "db"
 
+volumes:
+  dbdata:
