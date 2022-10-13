@@ -19,7 +19,7 @@ func GetConfig() (*Config, error) {
 	var err error
 	var conf *Config
 
-	_, err = toml.DecodeFile("../configs/config.toml", &conf)
+	_, err = toml.DecodeFile("./configs/config.toml", &conf)
 
 	return conf, err
 }

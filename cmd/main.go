@@ -79,14 +79,14 @@ func main() {
 
 func migration(conf *c.Config) error {
 	m, err := migrate.New(
-		"file://../migrations",
+		"file://./migrations",
 		fmt.Sprintf("%s://%s:%s@%s:%d/%s?sslmode=disable", conf.ConnectionType, conf.User, conf.Password, conf.Host, conf.Postgresqlport, conf.DBname))
 	if err != nil {
 		return err
 	}
-	if err := m.Down(); err != nil {
-		return err
-	}
+	// if err := m.Down(); err != nil {
+	// 	return err
+	// }
 	if err := m.Up(); err != nil {
 		return err
 	}
