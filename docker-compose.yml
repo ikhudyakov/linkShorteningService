@@ -1,7 +1,15 @@
 version: '3.8'
 
 services:
-  linkshorteningservice:
+  db:
+    restart: always
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+
+  go:
     build: ./
     command: ./linkshorteningservice
     ports:
@@ -9,8 +17,3 @@ services:
     depends_on:
       - db
 
-  db:
-    restart: always
-    image: postgres:latest
-    ports:
-      - 5432:5432
