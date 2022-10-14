@@ -2,7 +2,6 @@ package repo
 
 import (
 	c "linkShorteningService/internal/config"
-	"log"
 	"math/rand"
 	"time"
 )
@@ -14,12 +13,7 @@ type Link struct {
 	lenShortLink int    `json:"-"`
 }
 
-func GetLink() *Link {
-	conf, err := c.GetConfig()
-	if err != nil {
-		log.Println(err)
-	}
-
+func GetLink(conf *c.Config) *Link {
 	return &Link{
 		lenShortLink: conf.LenShortLink,
 	}

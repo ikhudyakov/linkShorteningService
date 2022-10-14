@@ -13,9 +13,10 @@ import (
 )
 
 func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager, conf *c.Config) {
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 
-	var link repo.Link = *repo.GetLink()
+	var link repo.Link = *repo.GetLink(conf)
 
 	if err := json.NewDecoder(r.Body).Decode(&link); err != nil {
 		log.Println((err.Error()))
@@ -68,6 +69,7 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager, 
 }
 
 func GetFullLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager) {
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	shortLink := params["shortlink"]
