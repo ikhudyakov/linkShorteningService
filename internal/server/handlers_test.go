@@ -28,12 +28,12 @@ func (db *TestDBManager) SetLink(link repo.Link) (int64, string, error) {
 	return 1, "localhost:8001", nil
 }
 func (db *TestDBManager) GetFullLink(shortLink string) (string, error) {
-	return "https://test1.com", nil
+	return "https://google.com", nil
 }
 
 func TestCreateShortLink(t *testing.T) {
 	body := repo.Link{}
-	body.FullLink = "https://test1.com"
+	body.FullLink = "https://google.com"
 	body.Domain = 0
 	var dbmanager repo.DBmanager = &TestDBManager{}
 
@@ -59,7 +59,7 @@ func TestCreateShortLink(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rr.Code)
 
 	expectedLink := repo.Link{
-		FullLink:  "https://test1.com",
+		FullLink:  "https://google.com",
 		ShortLink: "localhost:8001/1q2dr3g4jJ",
 		Domain:    0,
 	}
@@ -72,11 +72,12 @@ func TestCreateShortLink(t *testing.T) {
 
 func TestGetFullLink(t *testing.T) {
 	var dbmanager repo.DBmanager = &TestDBManager{}
+	expectedLocation := "https://google.com"
 	buffer := new(bytes.Buffer)
 	params := url.Values{}
 	params.Set("shortlink", "1q2dr3g4jJ")
 	buffer.WriteString(params.Encode())
-	req, err := http.NewRequest("GET", "/", buffer)
+	req, err := http.NewRequest("GET", "/{shortlink}", buffer)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,5 +90,10 @@ func TestGetFullLink(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
+	location := rr.Header()["Location"]
+
 	assert.Equal(t, http.StatusOK, rr.Code)
+
+	assert.Equal(t, expectedLocation, location[0])
+
 }
