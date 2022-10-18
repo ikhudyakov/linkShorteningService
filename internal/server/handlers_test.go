@@ -92,7 +92,7 @@ func TestGetFullLink(t *testing.T) {
 
 	location := rr.Header()["Location"]
 
-	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Equal(t, http.StatusSeeOther, rr.Code)
 
 	assert.Equal(t, expectedLocation, location[0])
 

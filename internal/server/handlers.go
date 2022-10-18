@@ -69,7 +69,6 @@ func CreateShortLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager, 
 }
 
 func GetFullLink(w http.ResponseWriter, r *http.Request, db repo.DBmanager) {
-	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	shortLink := params["shortlink"]
